@@ -118,6 +118,11 @@ if __name__ == "__main__":
     DEBUG = False
     TOC_UPD = False
 
+    # Easter egg
+    if (random.random()) > 0.99:
+        clippy()
+        print('Clippy suggests: "Ctrl+F can also help you look for keywords in the text!"')
+
     # Cant hurt
     import time
     then = time.time()
@@ -139,13 +144,12 @@ if __name__ == "__main__":
     #                                   title = 'Select a Day Eighty Assessment Report',
     #                                   filetypes = (('word documents', '*.docx'),('all files','*.*')))
 
-    print('Select Day Eighty Assessment Report Word File in Popup Window')
+    print('Select Day Eighty Assessment Report Word Files in Popup Window')
 
-    dear = filedialog.askopenfilename(initialdir = rf'{home}\Downloads',
-                                      title = 'Select a Day Eighty Assessment Report')
-
-    dear = re.sub('/', '\\\\', dear) # so we can have spaces in document names
-
+    dear = filedialog.askopenfilenames(initialdir = f'{home}/Downloads',
+                                      title = 'Select Day Eighty Assessment Reports')
+    # so we can have spaces in document names
+    dear = [re.sub('/', '\\\\', path) for path in dear]
 
     # Load keywords from excel file
     if getattr(sys, 'frozen', False):  # so we can fetch the location where .exe is run
@@ -171,30 +175,24 @@ if __name__ == "__main__":
     while keywords[-1] == []:
         keywords = keywords[:-1]
 
-    # Open doc behind the scenes and save as txt to perform regex on later
     print('>> Initialising Win32 COM API')
-    doc_txt = Woord(visible=0, scr_upd=0, toc_upd=TOC_UPD)
+    # doc_txt = Woord(visible=0, scr_upd=0, toc_upd=TOC_UPD)
     # doc_txt.save_txt(dear, tmp_dir)
+    for d in dear:
+        # Open version that will be highlighted and saved in directory .exe was run from
+        if DEBUG:
+            doc = Woord(visible=1, scr_upd=1, toc_upd=TOC_UPD)
+        else:
+            doc = Woord(visible=0, scr_upd=0, toc_upd=TOC_UPD)
 
-    # Open version that will be highlighted and saved in directory .exe was run from
-    if DEBUG:
-        doc = Woord(visible=1, scr_upd=1, toc_upd=TOC_UPD)
-    else:
-        doc = Woord(visible=0, scr_upd=0, toc_upd=TOC_UPD)
-
-    ohdear = doc.highlight(dear, keywords, tmp_dir)
-
-    doc_name = doc.save_docx(root, dear, ohdear)
-    print(f'>> Saving as ohdear_{doc_name} in same directory as ohdear')
-    # Easter egg
-    if (random.random()) > 0.99:
-        clippy()
-        print('Clippy suggests: "Ctrl+F can also help you look for keywords in the text!"')
+        ohdear = doc.highlight(d, keywords, tmp_dir)d
+        doc_name = doc.save_docx(root, d, ohdear)
+        print(f'>> Saving as ohdear_{doc_name} in same directory as ohdear')
 
     # Calculate how much of a person's time we have wasted
     now = time.time()
     print('ohdear took', round(now - then, 1), 'seconds')
 
     # To stop the window from closing
-    # os.remove(f'{tmp_dir}workaround.txt')  # remove temporary file
+    # os.remove(f'{tmp_dir}workaround.txt')  # remove temp file
     os.system('pause')
