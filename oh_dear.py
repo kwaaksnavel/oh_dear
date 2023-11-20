@@ -7,6 +7,7 @@ from tkinter import filedialog
 import pandas as pd
 import shutil
 import random
+import time
 
 
 def clippy():
@@ -57,6 +58,8 @@ class Woord:
             word_l = [[k for k, v in dict.items() if v > 0] for dict in self.word_d]
             print(f'Found {sum([sum(d.values()) for d in self.word_d])} instances of {sum([len(lijst) for lijst in word_l])} keyword(s)')
 
+
+
         # Highlight the terms in the list
         print('>> Highlighting Words in Text')
         self.palette = [3, 4, 5, 7, 6, 2, 11, 12, 14, 13, 0]  # highlight colours, cant rgb! only about 10 working colours...
@@ -68,7 +71,7 @@ class Woord:
                 self.app.Options.DefaultHighlightColorIndex = self.palette[k]  # picking colour
                 self.app.Selection.Find.Text = word  # finding word matches in the document
                 self.app.Selection.Find.Replacement.Text = word
-                self.app.Selection.Find.Execute(Replace=2, MatchWholeWord=False, MatchCase=False) # changed to False for Tom
+                self.app.Selection.Find.Execute(Replace=2, MatchWholeWord=False, MatchCase=False)
 
     def highlight(self, docpath, keywords, tmp_dir):
         self.opendoc = os.path.basename(docpath)
@@ -140,14 +143,11 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()
     root.focus_force()
-    # DEAR = filedialog.askopenfilename(initialdir = rf'{home}\Documents',
-    #                                   title = 'Select a Day Eighty Assessment Report',
-    #                                   filetypes = (('word documents', '*.docx'),('all files','*.*')))
 
     print('Select Day Eighty Assessment Report Word Files in Popup Window')
-
-    dear = filedialog.askopenfilenames(initialdir = f'{home}/Downloads',
-                                      title = 'Select Day Eighty Assessment Reports')
+    dear = filedialog.askopenfilenames(initialdir=f'{home}/Downloads',
+                                       title='Select Day Eighty Assessment Reports',
+                                       filetypes=(('word documents', '*.docx'), ('all files', '*.*')))
     # so we can have spaces in document names
     dear = [re.sub('/', '\\\\', path) for path in dear]
 
@@ -185,14 +185,15 @@ if __name__ == "__main__":
         else:
             doc = Woord(visible=0, scr_upd=0, toc_upd=TOC_UPD)
 
-        ohdear = doc.highlight(d, keywords, tmp_dir)d
+        ohdear = doc.highlight(d, keywords, tmp_dir)
         doc_name = doc.save_docx(root, d, ohdear)
         print(f'>> Saving as ohdear_{doc_name} in same directory as ohdear')
+        time.sleep(2)  # might need to increase in case of RPC errors
+
 
     # Calculate how much of a person's time we have wasted
     now = time.time()
     print('ohdear took', round(now - then, 1), 'seconds')
 
     # To stop the window from closing
-    # os.remove(f'{tmp_dir}workaround.txt')  # remove temp file
     os.system('pause')
